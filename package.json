@@ -4,8 +4,9 @@
   "description": "",
   "main": "app.ts",
   "scripts": {
-    "db:push": "drizzle-kit push:pg",
+    "db:push": "drizzle-kit push:pg && ts-node ./insertDefaultDbValues.ts",
     "db:generate": "drizzle-kit generate:pg",
+    "db:studio": "drizzle-kit studio",
     "build": "npx tsc",
     "dev": "nodemon src/app.ts",
     "serve": "node ./dist/app.js"
