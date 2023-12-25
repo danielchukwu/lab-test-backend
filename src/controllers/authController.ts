@@ -56,24 +56,43 @@ const generateJWT = (
 
 // Controllers
 export const signup_post = async (req: Request, res: Response) => {
-  console.log(1);
-  const { email, password } = req.body;
-  
   try {
+    const { full_name, gender, email, password, phone_number, date_of_birth } =
+      req.body;
+    if (!["male", "female"].includes((gender as string).toLowerCase()))
+      throw new Error("Gender should either be male or female");
+
+    if (password.length < 6)
+      throw new Error("Password must be at least 6 characters long");
+
     if (emailIsValid(email) && passwordIsValid(password)) {
-      console.log(2);
       const hashedPassword = await hashPassword(password);
-      console.log(3);
+      const genderData = await db.query.gender.findFirst({
+        where: () => eq(schema.gender, gender),
+      });
+      // create user
       const newUser = await db
-      .insert(schema.users)
-      .values({ email, password: hashedPassword })
-      .returning();
-      
-      console.log(4);
+        .insert(schema.users)
+        .values({
+          full_name,
+          gender_id: genderData!.id,
+          email,
+          password: hashedPassword,
+          phone_number,
+          date_of_birth,
+        })
+        .returning();
+
+      // send welcome mail to user
+      const msg = mailMsg({
+        to: email,
+        templateId: process.env.SG_WELCOME_TEMPLATE_ID!,
+      });
+      await sgMail.send(msg);
+
       console.log(newUser);
       // generate jwt token and add that to cookie on response
       const jwtToken = generateJWT(newUser[0].id);
-      console.log(5);
       res.cookie(authTokenName, jwtToken, {
         httpOnly: true,
         maxAge: JWT_MAX_AGE * 1000,
