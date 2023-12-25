@@ -1,5 +1,5 @@
-<div style="display: flex; justify-content: center;" >
-  <img src="https://www.svgrepo.com/show/20576/hospital.svg" alt="LabTest Logo" width="200" />
+<div style="display: flex; justify-content: center;" align="center">
+  <img src="https://www.svgrepo.com/show/20576/hospital.svg" alt="LabTest Logo" width="100" />
 </div>
 
 <h1 align="center" style="padding-top: 20px;">
