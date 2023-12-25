@@ -36,12 +36,19 @@ const hashPassword = async (password: string) => {
   return hashedPassword;
 };
 
-const generateJWT = (userId: string, expiresIn?: number) => {
+const generateJWT = (
+  userId: string | Record<string, any>,
+  expiresIn?: number
+) => {
   const secretKey = getSecretKey();
-  const jwtToken = jwt.sign({userId}, secretKey, {
-    algorithm: "HS256",
-    expiresIn: expiresIn ?? JWT_MAX_AGE,
-  });
+  const jwtToken = jwt.sign(
+    typeof userId === "string" ? { userId } : userId,
+    secretKey,
+    {
+      algorithm: "HS256",
+      expiresIn: expiresIn ?? JWT_MAX_AGE,
+    }
+  );
   console.log(jwtToken);
 
   return jwtToken;
