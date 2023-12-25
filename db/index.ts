@@ -8,4 +8,6 @@ dotenv.config();
 neonConfig.fetchConnectionCache = true;
 
 const sql = neon(process.env.DRIZZLE_DATABASE_URL!);
-export const db = drizzle(sql, {schema});
+const db = drizzle(sql, {schema});
+
+export default db;
