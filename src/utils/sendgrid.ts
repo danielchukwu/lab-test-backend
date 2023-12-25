@@ -1,33 +1,37 @@
-import sgMail, { MailDataRequired } from '@sendgrid/mail';
-import env from 'dotenv';
+import sgMail, { MailDataRequired } from "@sendgrid/mail";
+import env from "dotenv";
 
 env.config();
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
+sgMail.setApiKey(process.env.SG_API_KEY!);
 
-const msg: (to: string, subject: string, text: string) => MailDataRequired = (to, subject, text) => ({
-  to: to,  
-  from: {
-    name: 'DevTest',
-    email: process.env.SENDGRID_FROM_EMAIL!,
-  },
-  templateId: process.env.SENDGRID_TEMPLATE_ID!,
-  dynamicTemplateData: {
-    name: '00chukwudaniel@gmail.com'
-  }
-});
+type mailMsgProp = { to: string | string[]; templateId: string };
 
-export const sendMail = async () => {
+export function mailMsg({ to, templateId }: mailMsgProp) {
+  return {
+    to: to,
+    from: {
+      name: "DevTest",
+      email: process.env.SG_FROM_EMAIL!,
+    },
+    templateId: templateId,
+    dynamicTemplateData: {
+      name: "00chukwudaniel@gmail.com",
+    },
+  };
+}
+
+// use case example (using `sgMail` api)
+const sendMail = async () => {
   try {
-    const result = await sgMail.send(msg('00chukwudaniel@gmail.com', 'Reset your password', 'A request was made to change the password for 00chukwudaniel@gmail.com. If you didn’t intend to change your password you can ignore this email to leave it unchanged.'));
-    console.log('Mail sent successfully:', result);
+    const result = await sgMail.send(
+      mailMsg({to: "00chukwudaniel@gmail.com", templateId: process.env.SG_WELCOME_TEMPLATE_ID!})
+    );
   } catch (error: any) {
     console.error(error);
 
     if (error.response) {
-      console.error(error.response.body)
+      console.error(error.response.body);
     }
   }
-}
-
-sendMail();
+};
