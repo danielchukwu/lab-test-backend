@@ -1,8 +1,9 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import auth from './routes/authRoutes';
 import { requireAuth } from './middlewares/requireAuth';
 import cookieParser from 'cookie-parser';
+import authRouter from './routes/authRoutes';
+import userRouter from './routes/userRoutes';
 
 const port = 8000;
 dotenv.config();
@@ -15,7 +16,9 @@ app.use(express.json());
 app.use(cookieParser());
 
 // routes
-app.use(auth);
+app.use(authRouter);
+app.use('/users', userRouter);
+
 app.get('/', (req, res) => {
   res.status(200).json({endpoint: 'Home'});
 });
