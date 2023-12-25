@@ -133,48 +133,97 @@ export const login_post = async (req: Request, res: Response) => {
   }
 };
 
+
+
+export const change_password_post = async (req: Request, res: Response) => {
+  const authToken = req.cookies[authTokenName];
+  jwt.verify(authToken, getSecretKey(), async (errors: any, payload: any) => {
+    try {
+      if (errors) throw new Error("JWT token is invalid");
+
+      const userId = payload!.userId;
+      const { current_password, new_password } = req.body;
+
+      const user = await db.query.users.findFirst({
+        where: () => eq(schema.users.id, userId),
+      });
+      if (!user) throw new Error("User with current id doesn't exist");
+
+      const passwordMatches = await bcrypt.compare(
+        current_password,
+        user.password
+      );
+      if (!passwordMatches)
+        throw new Error("password does not match your current password");
+
+      const hashedPassword = await hashPassword(new_password);
+      await db
+        .update(schema.users)
+        .set({ password: hashedPassword })
+        .where(eq(schema.users.id, userId))
+        .returning();
+
+      res.status(200).json({ msg: "password has been successfully updated!" });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+};
+
+// Sends Reset Password Url To Users Email
+// generates jwt token, sends the jwt token to users email address to
+// allow them send the reset password token to the /reset_password
+// endpoint to update their password
 export const forgot_password_post = async (req: Request, res: Response) => {
   try {
-    const {email} = req.body;
-    const user = await db.query.users.findFirst({where: (table, {eq}) => eq(table.email, email)});
-    if (!user) throw new Error('Email does not exist');
-    
-    const token = generateJWT(user.id, 60*60);
+    const { email } = req.body;
+    const user = await db.query.users.findFirst({
+      where: (table, { eq }) => eq(table.email, email),
+    });
+    if (!user) throw new Error("Email does not exist");
+
+    // TODO: send link that allows the user update reset their password
+
+    const token = generateJWT({ email }, 60 * 60);
     res.status(200).json({ reset_password_token: token });
   } catch (error: any) {
     res.status(400).json({ error: error.message });
   }
 };
 
-// interface resetPasswordTokenPayloadProps { email: string }
+// Verifies that the password reset token is valid and then if it is
+// it allows users update there password
 export const reset_password_post = async (req: Request, res: Response) => {
   try {
-    console.log(1);
     const token = req.query.token as string;
     const { password } = req.body;
-    
+
     console.log(2);
-    console.log('token', token);
-    console.log('new password', password);
+    console.log("token", token);
+    console.log("new password", password);
 
     jwt.verify(
       token,
       getSecretKey(),
       async (errors, payload: any & { email: string }) => {
         if (errors)
-        return res.status(400).json({ errors: "Token is not valid" });
-      
+          return res.status(400).json({ errors: "Token is not valid" });
+
         console.log(3);
-        const { userId } = payload!;
+        const { email } = payload!;
+        const user = await db.query.users.findFirst({
+          where: () => eq(schema.users.email, email),
+        });
+        if (!user) throw new Error("User with email does not exist");
         const hashedPassword = await hashPassword(password);
 
         const updatedUser = await db
           .update(schema.users)
           .set({ password: hashedPassword })
-          .where(eq(schema.users.id, userId))
+          .where(eq(schema.users.id, user.id))
           .returning();
-        console.log('Updated User: ', updatedUser);
-        
+        console.log("Updated User: ", updatedUser);
+
         res.status(200).json({ response: "Password has been updated!" });
       }
     );
