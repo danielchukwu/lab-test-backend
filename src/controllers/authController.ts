@@ -1,14 +1,15 @@
 import { Request, Response } from "express";
-import { db } from "../../db";
+import db from "../../db";
 import * as schema from "../../db/schema";
 import bcrypt, { hash } from "bcrypt";
 import jwt from "jsonwebtoken";
 import { eq } from "drizzle-orm";
-import { except } from "drizzle-orm/mysql-core";
+import sgMail from "@sendgrid/mail";
+import { mailMsg } from "../utils/sendgrid";
 
 export const authTokenName = "user-token";
-// const JWT_MAX_AGE = 60 * 60 * 24 * 30;
-const JWT_MAX_AGE = 5;
+const JWT_MAX_AGE = 60 * 60 * 24 * 30;
+// const JWT_MAX_AGE = 5;
 
 export interface JWTPayload {
   user_id: string;
