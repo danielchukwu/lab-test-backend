@@ -100,7 +100,7 @@ export const signup_post = async (req: Request, res: Response) => {
       });
       console.log(6);
 
-      res.status(400).json({ user: newUser });
+      res.status(400).json({ user: newUser[0] });
     }
   } catch (error: any) {
     res.status(201).json({ error: error.message });
